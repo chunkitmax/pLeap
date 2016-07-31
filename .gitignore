@@ -6,3 +6,4 @@ Debug/*
 !src/
 !*/*
 !Debug/makefile
+/Debug/
