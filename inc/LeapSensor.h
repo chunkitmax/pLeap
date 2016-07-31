@@ -54,7 +54,7 @@ public:
 
 	typedef enum FingerType
 	{
-		ThumbFinger,
+		ThumbFinger = 0,
 		IndexFinger,
 		MiddleFinger,
 		RingFinger,
@@ -63,11 +63,20 @@ public:
 
 	typedef enum BoneType
 	{
-		MetacarpalBone,
+		MetacarpalBone = 0,
 		ProximalBone,
 		MiddleBone,
 		DistalBone
 	} BoneType;
+
+	typedef enum GestureFlag
+	{
+		NoneGesture		= 0,
+		CircleGesture		= 1 << 0,
+		SwipeGesture		= 1 << 1,
+		KeyTapGesture		= 1 << 2,
+		ScreenTapGesture = 1 << 3
+	} GestureFlag;
 
 	typedef enum GestureType
 	{
@@ -115,12 +124,11 @@ public:
 	struct Finger
 	{
 		int32_t			id;
-		FingerType			type;
 		array<Bone, 4>	bones;
 
 		Finger(void)
 		:
-			id(0), type((FingerType)-1), bones()
+			id(0), bones()
 		{}
 	};
 
@@ -146,7 +154,7 @@ public:
 
 		Hand(void)
 		:
-			id(0), type(HandType::Invalid), palm(), fingers(), arm()
+			id(0), type(HandType::Invalid), arm(), palm(), fingers()
 		{}
 	};
 
@@ -192,6 +200,11 @@ public:
 			id(0), timestamp(0), extendedState(0), extendedFingersCount(0), hands(), tools(), gestures()
 		{}
 
+		Frame(const Frame &rhs)
+		:
+			id(rhs.id), timestamp(rhs.timestamp), extendedState(rhs.extendedState), extendedFingersCount(rhs.extendedFingersCount), hands(rhs.hands), tools(rhs.tools), gestures(rhs.gestures)
+		{}
+
 		void update(const Leap::Controller &controller, const int history = 0);
 
 		void clear(void);
@@ -207,7 +220,8 @@ public:
 
 	typedef function<void (const Frame &)> OnFrameListener;
 
-	LeapSensor(void);
+	LeapSensor(void) = delete;
+	explicit LeapSensor(const GestureFlag flags);
 	~LeapSensor(void);
 
 	void setState(unsigned char _state);
@@ -216,6 +230,9 @@ public:
 	Frame getFrame(void) const;
 	Frame getFrame(const int history);
 	static Frame LastFrame(void);
+
+	static string getGestureName(const GestureType type);
+	static GestureType gestureFlagToType(const GestureFlag flag);
 
 	void setOnFrameListener(const OnFrameListener &listener);
 
@@ -234,6 +251,6 @@ private:
 
 	unsigned char			m_state;
 
-	static LeapSensor		*m_instance;
+	static LeapSensor	*m_instance;
 
 };

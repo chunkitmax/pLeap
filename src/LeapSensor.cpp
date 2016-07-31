@@ -11,7 +11,7 @@
 
 const array<string, 5>	LeapSensor::FingerNames = { "Thumb", "Index", "Middle", "Ring", "Pinky" };
 const array<string, 4>	LeapSensor::BoneNames = { "Metacarpal", "Proximal", "Middle", "Distal" };
-const array<string, 4>	LeapSensor::StateNames = {"STATE_INVALID", "STATE_START", "STATE_UPDATE", "STATE_END"};
+const array<string, 4>	LeapSensor::StateNames = { "STATE_INVALID", "STATE_START", "STATE_UPDATE", "STATE_END" };
 
 LeapSensor				*LeapSensor::m_instance = nullptr;
 
@@ -61,17 +61,16 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 				for (Leap::FingerList::const_iterator cur = fingers.begin(); cur != fingers.end(); cur++)
 				{
 					const Leap::Finger finger = *cur;
-					Finger tempFinger;
+					int type = finger.type();
 
-					tempFinger.id = finger.id();
-					tempFinger.type = (FingerType)finger.type();
+					tempHand.fingers[type].id = finger.id();
 
 					for (int i = 0; i < 4; i++)
 					{
 						const Leap::Bone bone = finger.bone((Leap::Bone::Type)i);
-						tempFinger.bones[i].start = bone.prevJoint();
-						tempFinger.bones[i].end = bone.nextJoint();
-						tempFinger.bones[i].direction = bone.direction();
+						tempHand.fingers[type].bones[i].start = bone.prevJoint();
+						tempHand.fingers[type].bones[i].end = bone.nextJoint();
+						tempHand.fingers[type].bones[i].direction = bone.direction();
 					}
 				}
 
@@ -94,7 +93,7 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 			}
 
 			const Leap::GestureList _gestures = frame.gestures();
-			for (Leap::GestureList::const_iterator cur = _gestures.begin(); cur != _gestures.end(); cur ++)
+			for (Leap::GestureList::const_iterator cur = _gestures.begin(); cur != _gestures.end(); cur++)
 			{
 				Leap::Gesture gesture = *cur;
 				Gesture tempGesture;
@@ -110,6 +109,7 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 	}
 	catch (int e)
 	{
+		cout << "GG" << endl;
 		clear();
 	}
 }
@@ -126,7 +126,7 @@ void LeapSensor::Frame::clear(void)
 }
 
 
-LeapSensor::LeapSensor(void)
+LeapSensor::LeapSensor(const GestureFlag flags)
 :
 	m_listener(*this),
 	m_controller(),
@@ -137,6 +137,11 @@ LeapSensor::LeapSensor(void)
 	{
 		m_instance = this;
 		m_controller.addListener(m_listener);
+
+		if (flags != GestureFlag::NoneGesture)
+			for(int i = 0; i < 4; i++)
+				if (flags & (1 << i))
+					m_controller.enableGesture((Leap::Gesture::Type)gestureFlagToType((GestureFlag)(1 << i)));
 	}
 }
 
@@ -172,7 +177,52 @@ LeapSensor::Frame LeapSensor::LastFrame(void)
 	return m_instance->m_lastFrame;
 }
 
-void LeapSensor::setOnFrameListener(const LeapSensor::OnFrameListener &listener)
+string LeapSensor::getGestureName(const GestureType type)
+{
+	switch (type)
+	{
+	default:
+		return string("Invalid");
+
+	case GestureType::InvalidType:
+		return string("Invalid");
+
+	case GestureType::Circle:
+		return string("Circle");
+
+	case GestureType::KeyTap:
+		return string("KeyTap");
+
+	case GestureType::ScreenTap:
+		return string("ScreenTap");
+
+	case GestureType::Swipe:
+		return string("Swipe");
+	}
+}
+
+LeapSensor::GestureType LeapSensor::gestureFlagToType(const GestureFlag flag)
+{
+	switch (flag)
+	{
+	default:
+		return (GestureType)0;
+
+	case GestureFlag::CircleGesture:
+		return GestureType::Circle;
+
+	case GestureFlag::SwipeGesture:
+		return GestureType::Swipe;
+
+	case GestureFlag::KeyTapGesture:
+		return GestureType::KeyTap;
+
+	case GestureFlag::ScreenTapGesture:
+		return GestureType::ScreenTap;
+	}
+}
+
+void LeapSensor::setOnFrameListener(const OnFrameListener &listener)
 {
 	m_onFrameListener = listener;
 }
