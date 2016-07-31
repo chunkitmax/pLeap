@@ -8,6 +8,7 @@
  */
 
 #include "../inc/MainWindow.h"
+#include <Xlib.h>
 
 MainWindow *MainWindow::m_instance = nullptr;
 
@@ -20,7 +21,9 @@ MainWindow::MainWindow(const char *_title, const int _width, const int _height)
 	m_label1(),
 	m_label2(),
 	m_leftLabelBuffer{ 0 },
-	m_rightLabelBuffer{ 0 }
+	m_rightLabelBuffer{ 0 },
+	m_leftTapCount(0),
+	m_rightTapCount(0)
 {
 	if (!m_instance)
 	{
@@ -68,20 +71,43 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 	try
 	{
 		uint8_t flag = 0;
+
+		for (std::vector<LeapSensor::Gesture>::const_iterator i = frame.gestures.begin(); i != frame.gestures.end(); i++)
+		{
+			const LeapSensor::Gesture gesture = *i;
+			if (!gesture.gesture.hands().isEmpty())
+				(gesture.gesture.hands()[0].isLeft())? m_instance->m_leftTapCount++ : m_instance->m_rightTapCount++;
+		}
+
 		for (std::vector<LeapSensor::Hand>::const_iterator i = frame.hands.begin(); i != frame.hands.end(); i++)
 		{
 			const LeapSensor::Hand hand = *i;
 			if ((*i).type == LeapSensor::HandType::Left)
 			{
-				sprintf(m_instance->m_leftLabelBuffer, "Left Palm:\nPitch: %f\nRoll: %f\nYaw: %f\n\0", hand.palm.pitch, hand.palm.roll, hand.palm.yaw);
+				sprintf(m_instance->m_leftLabelBuffer,
+						"Left hand:\nIndex:\t%.1f,\t%.1f,\t%.1f\n\nTapCount:\t%d\n",
+
+						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.x,
+						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.y,
+						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.z,
+
+						m_instance->m_leftTapCount);
 				flag |= 0x02;
 			}
 			else
 			{
-				sprintf(m_instance->m_rightLabelBuffer, "Right Palm:\nPitch: %f\nRoll: %f\nYaw: %f\n\0", hand.palm.pitch, hand.palm.roll, hand.palm.yaw);
+				sprintf(m_instance->m_rightLabelBuffer,
+						"Right hand:\nIndex:\t%.1f,\t%.1f,\t%.1f\n\nTapCount:\t%d\n",
+
+						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.x,
+						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.y,
+						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.z,
+
+						m_instance->m_rightTapCount);
 				flag |= 0x01;
 			}
 		}
+
 		if (~flag & 0x02)
 			strcpy(m_instance->m_leftLabelBuffer, "None\0");
 		if (~flag & 0x01)

@@ -45,4 +45,7 @@ protected:
 	char								m_leftLabelBuffer[255];
 	char								m_rightLabelBuffer[255];
 
+	int 									m_leftTapCount;
+	int									m_rightTapCount;
+
 };
