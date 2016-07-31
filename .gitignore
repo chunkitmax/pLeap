@@ -1,0 +1,8 @@
+.cproject
+.project
+Debug/*
+
+!inc/
+!src/
+!*/*
+!Debug/makefile
