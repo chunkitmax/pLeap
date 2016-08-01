@@ -1,38 +1,54 @@
-CC=g++
-CFLAGS=-Wall -O2 -g0
+FLAGS=-Wall -O2 -g0
+LDFLAGS=$(LEAP_PATH)/LeapSDK/lib/x64
 ALTFLAGS=`pkg-config gtkmm-3.0 --cflags --libs`
 
-# where LeapSDK folder are located
-LIB=$(LEAP_PATH)/LeapSDK/lib/x64/libLeap.so -Wl,-rpath,$(LEAP_PATH)/LeapSDK/lib/x64
+# $(LEAP_PATH): where LeapSDK folder are located
 
-IDIR=../inc/Leap /usr/include/X11/ ../inc
-SDIR=../src
-ODIR=src
+SHAREDLIB=$(LEAP_PATH)/LeapSDK/lib/x64/libLeap.so
+LIBS=X11 Xtst
+LIBPATH=/usr/X11/lib
 
-INC=$(foreach d, $(IDIR), -I$d)
-SFILES=$(wildcard $(SDIR)/*.cpp)
-OFILES=$(patsubst $(SDIR)/%.cpp, $(ODIR)/%.o, $(SFILES))
-
+INCDIR=inc/Leap /usr/include inc
+SRCDIR=src
+OBJDIR=obj
+BINDIR=bin
 
 EXEC=LinuxApp
 
+####################################################################
 
-DEPENDS:=$(OFILES:.o=.d)
+$(shell mkdir -p $(OBJDIR))
+$(shell mkdir -p $(BINDIR))
 
-all: $(EXEC)
+LIBRARIES=
 
-$(ODIR)/%.o: $(SDIR)/%.cpp
+INCFILES=$(foreach d, $(INCDIR), -I$d)
+SRCFILES=$(wildcard $(SRCDIR)/*.cpp)
+OBJFILES=$(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCFILES))
+
+LIBRARIES+=$(foreach d, $(LIBS), -l$d)
+LIBRARIES+=$(foreach d, $(LIBPATH), -L$d)
+LIBRARIES+=$(foreach d, $(LDFLAGS), -Wl,-rpath,$d)
+LIBRARIES+=$(SHAREDLIB)
+
+DEPENDS:=$(OBJFILES:.o=.d)
+
+all: $(BINDIR)/$(EXEC)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@echo '$< -> $@ $(@:.o=.d)'
-	@$(CC) -c $< -o $@ $(ALTFLAGS) $(CFLAGS) $(INC) $(LIB)
-	@$(CC) -M $< > $(@:.o=.d) $(ALTFLAGS) $(CFLAGS) $(INC) $(LIB)
+	@$(CXX) -c $< -o $@ $(ALTFLAGS) $(FLAGS) $(INCFILES) $(LIBRARIES)
+	@$(CXX) -M $< > $(@:.o=.d) $(ALTFLAGS) $(FLAGS) $(INCFILES) $(LIBRARIES)
 	
-$(EXEC): $(OFILES)
-	@echo 'Linking { $(OFILES) } -> $(EXEC)'
-	@$(CC) $(OFILES) -o $@ $(ALTFLAGS) $(CFLAGS) $(INC) $(LIB)
-
+$(BINDIR)/$(EXEC): $(OBJFILES)
+	@echo 'Linking { $(OBJFILES) } -> $(EXEC)'
+	@$(CXX) $(OBJFILES) -o $@ $(ALTFLAGS) $(FLAGS) $(INCFILES) $(LIBRARIES)
+	
 -include $(DEPENDS)
 
 clean:
-	@rm -f $(ODIR)/*
-	@rm -f $(EXEC)
+	@rm -f $(OBJDIR)/*
+	@rmdir $(OBJDIR)
+	@rm -f $(BINDIR)/*
+	@rmdir $(BINDIR)
 	
