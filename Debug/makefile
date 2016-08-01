@@ -5,7 +5,7 @@ ALTFLAGS=`pkg-config gtkmm-3.0 --cflags --libs`
 # where LeapSDK folder are located
 LIB=$(LEAP_PATH)/LeapSDK/lib/x64/libLeap.so -Wl,-rpath,$(LEAP_PATH)/LeapSDK/lib/x64
 
-IDIR=../inc/Leap /usr/include/X11/
+IDIR=../inc/Leap /usr/include/X11/ ../inc
 SDIR=../src
 ODIR=src
 
