@@ -10,8 +10,8 @@
 #include <cstdio>
 #include <iostream>
 #include <gtkmm.h>
-#include "../inc/LeapSensor.h"
-#include "../inc/MainWindow.h"
+#include "LeapSensor.h"
+#include "MainWindow.h"
 
 void windowRemoved(Gtk::Window *window)
 {

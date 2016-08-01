@@ -7,7 +7,7 @@
  *	
  */
 
-#include "../inc/LeapSensor.h"
+#include "LeapSensor.h"
 
 const array<string, 5>	LeapSensor::FingerNames = { "Thumb", "Index", "Middle", "Ring", "Pinky" };
 const array<string, 4>	LeapSensor::BoneNames = { "Metacarpal", "Proximal", "Middle", "Distal" };

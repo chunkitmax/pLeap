@@ -7,7 +7,7 @@
  *	
  */
 
-#include "../inc/MainWindow.h"
+#include "MainWindow.h"
 #include <Xlib.h>
 
 MainWindow *MainWindow::m_instance = nullptr;
