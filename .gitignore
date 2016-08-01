@@ -1,9 +1,13 @@
+# inlcude
+!inc/*
+!src/*
+!*/*
+!Debug/makefile
+
+# exclude
 .cproject
 .project
 Debug/*
-
-!inc/
-!src/
-!*/*
-!Debug/makefile
 /Debug/
+.settings/*
+/.settings/
