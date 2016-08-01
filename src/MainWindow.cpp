@@ -72,18 +72,18 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 	{
 		uint8_t flag = 0;
 
-		for (std::vector<LeapSensor::Gesture>::const_iterator i = frame.gestures.begin(); i != frame.gestures.end(); i++)
-		{
-			const LeapSensor::Gesture gesture = *i;
-			if (!gesture.gesture.hands().isEmpty())
-				(gesture.gesture.hands()[0].isLeft())? m_instance->m_leftTapCount++ : m_instance->m_rightTapCount++;
-		}
-
 		for (std::vector<LeapSensor::Hand>::const_iterator i = frame.hands.begin(); i != frame.hands.end(); i++)
 		{
 			const LeapSensor::Hand hand = *i;
 			if ((*i).type == LeapSensor::HandType::Left)
 			{
+				for (std::vector<LeapSensor::Gesture>::const_iterator i = frame.gestures.begin(); i != frame.gestures.end(); i++)
+				{
+					const Leap::KeyTapGesture gesture = (*i).gesture;
+					if (((Leap::Finger)gesture.pointable()).type() == Leap::Finger::TYPE_INDEX && hand.fingers[LeapSensor::FingerType::IndexFinger].id == ((Leap::Finger)gesture.pointable()).id())
+						m_instance->m_leftTapCount++;
+				}
+
 				sprintf(m_instance->m_leftLabelBuffer,
 						"Left hand:\nIndex:\t%.1f,\t%.1f,\t%.1f\n\nTapCount:\t%d\n",
 
@@ -96,6 +96,13 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 			}
 			else
 			{
+				for (std::vector<LeapSensor::Gesture>::const_iterator i = frame.gestures.begin(); i != frame.gestures.end(); i++)
+				{
+					const Leap::KeyTapGesture gesture = (*i).gesture;
+					if (((Leap::Finger)gesture.pointable()).type() == Leap::Finger::TYPE_INDEX && hand.fingers[LeapSensor::FingerType::IndexFinger].id == ((Leap::Finger)gesture.pointable()).id())
+						m_instance->m_rightTapCount++;
+				}
+
 				sprintf(m_instance->m_rightLabelBuffer,
 						"Right hand:\nIndex:\t%.1f,\t%.1f,\t%.1f\n\nTapCount:\t%d\n",
 
