@@ -13,7 +13,7 @@ SRCDIR=src
 OBJDIR=obj
 BINDIR=bin
 
-EXEC=LinuxApp
+EXEC=pLeap
 
 ####################################################################
 
