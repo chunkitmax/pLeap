@@ -8,15 +8,16 @@
  */
 
 #include "MainWindow.h"
-#include <Xlib.h>
 
 MainWindow *MainWindow::m_instance = nullptr;
 
 MainWindow::MainWindow(const char *_title, const int _width, const int _height)
 :
 	m_grid(),
-	m_button1("Testing"),
+	m_button1("LeapControl Off"),
 	m_isFrameUpdated(false),
+	m_isLeapControlEnabled(false),
+	m_isClicked(false),
 	m_box(),
 	m_label1(),
 	m_label2(),
@@ -50,11 +51,11 @@ MainWindow::MainWindow(const char *_title, const int _width, const int _height)
 //		m_button1.set_size_request(150, 50);
 
 		// Label1
-		m_label1.set_size_request(200, 300);
+		m_label1.set_size_request(250, 350);
 		m_label1.set_text(Glib::ustring(""));
 
 		// Label2
-		m_label2.set_size_request(200, 300);
+		m_label2.set_size_request(250, 350);
 		m_label2.set_text(Glib::ustring(""));
 
 		Glib::signal_idle().connect(sigc::mem_fun(*this, &MainWindow::updateLabel));
@@ -100,7 +101,10 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 				{
 					const Leap::KeyTapGesture gesture = (*i).gesture;
 					if (((Leap::Finger)gesture.pointable()).type() == Leap::Finger::TYPE_INDEX && hand.fingers[LeapSensor::FingerType::IndexFinger].id == ((Leap::Finger)gesture.pointable()).id())
+					{
+						m_instance->m_isClicked = true;
 						m_instance->m_rightTapCount++;
+					}
 				}
 
 				sprintf(m_instance->m_rightLabelBuffer,
@@ -112,13 +116,22 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 
 						m_instance->m_rightTapCount);
 				flag |= 0x01;
+
+				if (m_instance->m_isLeapControlEnabled)
+				{
+//					SystemController::moveMouseTo((int)((inRange(-100.0f, hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.x, 100.0f) + 100.0f) / 200.0f * SystemController::ScreenWidth), (int)((inRange(-100.0f, hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.z, 0.0f) + 100.0f) / 100.0f * SystemController::ScreenHeight));
+					SystemController::moveMouseTo((int)((inRange(-100.0f, hand.palm.position.x, 100.0f) + 100.0f) / 200.0f * SystemController::ScreenWidth), (int)((inRange(-70.0f, hand.palm.position.z, 70.0f) + 70.0f) / 140.0f * SystemController::ScreenHeight));
+					if (m_instance->m_isClicked)
+						SystemController::click(SystemController::MouseButton::LeftButton);
+					m_instance->m_isClicked = false;
+				}
 			}
 		}
 
-		if (~flag & 0x02)
-			strcpy(m_instance->m_leftLabelBuffer, "None\0");
-		if (~flag & 0x01)
-			strcpy(m_instance->m_rightLabelBuffer, "None\0");
+//		if (~flag & 0x02)
+//			strcpy(m_instance->m_leftLabelBuffer, "None\0");
+//		if (~flag & 0x01)
+//			strcpy(m_instance->m_rightLabelBuffer, "None\0");
 	}
 	catch (int e)
 	{}
@@ -143,5 +156,6 @@ bool MainWindow::updateLabel(void)
 
 void MainWindow::onButton1Clicked(void)
 {
-	m_label1.set_label(Glib::ustring("HelloWorld!!!\n").append(m_label1.get_text()));
+	m_isLeapControlEnabled = !m_isLeapControlEnabled;
+	m_button1.set_label(Glib::ustring((m_isLeapControlEnabled)? "LeapControl On" : "LeapControl Off"));
 }

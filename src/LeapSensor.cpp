@@ -51,7 +51,7 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 				}
 
 				const Leap::Vector palmDirection = hand.direction();
-				tempHand.palm.position = hand.palmPosition();
+				tempHand.palm.position = handpalmPosition();
 				tempHand.palm.velocity = hand.palmVelocity();
 				tempHand.palm.pitch = palmDirection.pitch();
 				tempHand.palm.yaw = palmDirection.yaw();
@@ -64,6 +64,7 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 					int type = finger.type();
 
 					tempHand.fingers[type].id = finger.id();
+					tempHand.fingers[type].tipPosition = finger.stabilizedTipPosition();
 
 					for (int i = 0; i < 4; i++)
 					{
@@ -142,6 +143,9 @@ LeapSensor::LeapSensor(const GestureFlag flags)
 			for(int i = 0; i < 4; i++)
 				if (flags & (1 << i))
 					m_controller.enableGesture((Leap::Gesture::Type)gestureFlagToType((GestureFlag)(1 << i)));
+
+		m_controller.config().setFloat("Gesture.KeyTap.MinDownVelocity", 5.0f);
+		m_controller.config().save();
 	}
 }
 

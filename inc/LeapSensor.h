@@ -16,6 +16,8 @@
 
 using namespace std;
 
+#define inRange(n, v, x) ((v < n)? n : ((v > x)? x : v))
+
 class LeapSensor
 {
 
@@ -124,6 +126,7 @@ public:
 	struct Finger
 	{
 		int32_t			id;
+		Leap::Vector		tipPosition;
 		array<Bone, 4>	bones;
 
 		Finger(void)
@@ -197,7 +200,7 @@ public:
 
 		Frame(void)
 		:
-			id(0), timestamp(0), extendedState(0), extendedFingersCount(0), hands(), tools(), gestures()
+			id(0), timestamp(0), extendedState(0), extendedFingersCount(0), hands(2), tools(), gestures()
 		{}
 
 		Frame(const Frame &rhs)

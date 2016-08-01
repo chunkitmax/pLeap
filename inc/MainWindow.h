@@ -12,6 +12,7 @@
 #include <iostream>
 #include <gtkmm.h>
 #include "LeapSensor.h"
+#include "SystemController.h"
 
 class MainWindow : public Gtk::Window
 {
@@ -36,6 +37,8 @@ protected:
 	bool updateLabel(void);
 
 	bool								m_isFrameUpdated;
+	bool								m_isLeapControlEnabled;
+	bool								m_isClicked;
 
 	Gtk::Box							m_box;
 
