@@ -2,7 +2,7 @@
  *	MainWindow.h
  *	
  *	Author: petel__
- *	Copyright (c) 2014-2016 HKUST SmartCar Team
+ *	Copyright (c) 2014-2016
  *	Refer to LICENSE for details
  *	
  */
