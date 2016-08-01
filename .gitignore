@@ -7,7 +7,6 @@
 # exclude
 .cproject
 .project
-Debug/*
-/Debug/
 .settings/*
-/.settings/
+bin/*
+obj/*
