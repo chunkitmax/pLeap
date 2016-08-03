@@ -51,7 +51,7 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 				}
 
 				const Leap::Vector palmDirection = hand.direction();
-				tempHand.palm.position = handpalmPosition();
+				tempHand.palm.position = hand.palmPosition();
 				tempHand.palm.velocity = hand.palmVelocity();
 				tempHand.palm.pitch = palmDirection.pitch();
 				tempHand.palm.yaw = palmDirection.yaw();
@@ -65,6 +65,7 @@ void LeapSensor::Frame::update(const Leap::Controller &controller, const int his
 
 					tempHand.fingers[type].id = finger.id();
 					tempHand.fingers[type].tipPosition = finger.stabilizedTipPosition();
+					tempHand.fingers[type].tipVelocity = finger.tipVelocity();
 
 					for (int i = 0; i < 4; i++)
 					{
@@ -143,9 +144,6 @@ LeapSensor::LeapSensor(const GestureFlag flags)
 			for(int i = 0; i < 4; i++)
 				if (flags & (1 << i))
 					m_controller.enableGesture((Leap::Gesture::Type)gestureFlagToType((GestureFlag)(1 << i)));
-
-		m_controller.config().setFloat("Gesture.KeyTap.MinDownVelocity", 5.0f);
-		m_controller.config().save();
 	}
 }
 
@@ -244,6 +242,10 @@ void LeapSensor::LeapListener::onInit(const Leap::Controller &controller)
 void LeapSensor::LeapListener::onConnect(const Leap::Controller &controller)
 {
 	m_leapInstance.setState(m_leapInstance.getState() | STATE_DEVICE_CONNECTED);
+
+	cout << "DownVelocity: " << m_leapInstance.m_controller.config().setFloat("Gesture.KeyTap.MinDownVelocity", 4.0f) << endl;
+	cout << "HistorySeconds: " << m_leapInstance.m_controller.config().setFloat("Gesture.KeyTap.HistorySeconds", 0.5f) << endl;
+	cout << "Save: " << m_leapInstance.m_controller.config().save() << endl;
 }
 
 void LeapSensor::LeapListener::onDisconnect(const Leap::Controller &controller)

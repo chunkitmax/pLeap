@@ -38,7 +38,9 @@ protected:
 
 	bool								m_isFrameUpdated;
 	bool								m_isLeapControlEnabled;
-	bool								m_isClicked;
+	bool								m_isStateReadyToChange;
+	bool								m_isDown;
+	float								m_highestRSpeed;
 
 	Gtk::Box							m_box;
 

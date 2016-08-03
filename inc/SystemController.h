@@ -25,7 +25,7 @@ public:
 		MiddleButton,
 		WheelUp,
 		WheelDown
-	};
+	} MouseButton;
 
 	SystemController(void);
 	~SystemController(void);
@@ -35,7 +35,8 @@ public:
 
 	static void moveMouse(const int xOffset, const int yOffset);
 	static void moveMouseTo(const int x, const int y);
-	static void click(const MouseButton which);
+	static void pressMouse(const MouseButton which);
+	static void releaseMouse(const MouseButton which);
 
 	static int						ScreenWidth;
 	static int						ScreenHeight;

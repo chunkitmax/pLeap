@@ -80,10 +80,14 @@ void SystemController::_moveMouseToTest(const int x, const int y)
 	XFlush(m_display);
 }
 
-void SystemController::click(const MouseButton which)
+void SystemController::pressMouse(const MouseButton which)
 {
 	XTestFakeButtonEvent(m_display, which, true, 0);
 	XFlush(m_display);
+}
+
+void SystemController::releaseMouse(const MouseButton which)
+{
 	XTestFakeButtonEvent(m_display, which, false, 0);
 	XFlush(m_display);
 }

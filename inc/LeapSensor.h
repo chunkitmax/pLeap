@@ -127,6 +127,7 @@ public:
 	{
 		int32_t			id;
 		Leap::Vector		tipPosition;
+		Leap::Vector		tipVelocity;
 		array<Bone, 4>	bones;
 
 		Finger(void)
