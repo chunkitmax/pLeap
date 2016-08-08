@@ -17,7 +17,6 @@ MainWindow::MainWindow(const char *_title, const int _width, const int _height)
 	m_button1("LeapControl Off"),
 	m_isFrameUpdated(false),
 	m_isLeapControlEnabled(false),
-	m_isStateReadyToChange(false),
 	m_isDown(false),
 	m_highestRSpeed(0.0f),
 	m_box(),
@@ -100,76 +99,83 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 			}
 			else
 			{
-//				for (std::vector<LeapSensor::Gesture>::const_iterator i = frame.gestures.begin(); i != frame.gestures.end(); i++)
+				float	palmSpeed = hand.palm.velocity.y,
+						indexFingerSpeed = hand.fingers[LeapSensor::FingerType::IndexFinger].tipVelocity.y;
+//				if (((palmSpeed || indexFingerSpeed) && indexFingerSpeed / palmSpeed >= 2.5f) && indexFingerSpeed >= 0.0f && hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y <= hand.palm.position.y)
 //				{
-//					const Leap::KeyTapGesture gesture = (*i).gesture;
-//					if (((Leap::Finger)gesture.pointable()).type() == Leap::Finger::TYPE_INDEX && hand.fingers[LeapSensor::FingerType::IndexFinger].id == ((Leap::Finger)gesture.pointable()).id())
+//					if (!m_instance->m_isDown)
 //					{
-//						m_instance->m_isClicked = true;
 //						m_instance->m_rightTapCount++;
+//						m_instance->m_pressPosition = hand.palm.position;
+//						m_instance->m_isDragging = false;
+//						isMouseStateChanged = true;
 //					}
+//
+//					m_instance->m_isDown = true;
+//				}
+//				else if (hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y > hand.palm.position.y)
+//				{
+//					if (m_instance->m_isDown)
+//						isMouseStateChanged = true;
+//
+//					m_instance->m_isDown = false;
 //				}
 
-				float	palmSpeed = hand.palm.velocity.distanceTo(Leap::Vector::down()),
-						indexFingerSpeed = hand.fingers[LeapSensor::FingerType::IndexFinger].tipVelocity.distanceTo(Leap::Vector::down());
-				if (((palmSpeed || indexFingerSpeed) && indexFingerSpeed / palmSpeed >= 2.5f) && hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y <= hand.palm.position.y)
-				{
-//					if (!m_instance->m_isDown && m_instance->m_isStateReadyToChange)
-//					{
-//						m_instance->m_isDown = true;
-//						isMouseStateChanged = true;
-//						m_instance->m_isStateReadyToChange = false;
-//					}
-//					else if (!m_instance->m_isDown && !m_instance->m_isStateReadyToChange)
-//						m_instance->m_isStateReadyToChange = true;
+				float dt = (frame.timestamp - m_instance->m_lastTime) / 1000.0f;
 
+				if (indexFingerSpeed / dt <= -15.0f && indexFingerSpeed / palmSpeed >= 2.0f)
+				{
 					if (!m_instance->m_isDown)
 					{
 						m_instance->m_rightTapCount++;
+						m_instance->m_indexPalmDistance = hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y - hand.palm.position.y;//m_instance->m_pressIndexPositionY - m_instance->m_pressPalmPositionY;
+						m_instance->m_pressPosition = hand.palm.position;
+						m_instance->m_isDown = true;
+						m_instance->m_isDragging = false;
 						isMouseStateChanged = true;
 					}
-
-					m_instance->m_isDown = true;
 				}
-				else if (hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y > hand.palm.position.y)
+				else if (indexFingerSpeed / dt >= 5.0f || hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y > hand.palm.position.y + m_instance->m_indexPalmDistance)
 				{
-//					if (m_instance->m_isDown && m_instance->m_isStateReadyToChange)
-//					{
-//						m_instance->m_isDown = false;
-//						isMouseStateChanged = true;
-//						m_instance->m_isStateReadyToChange = false;
-//						m_instance->m_rightTapCount++;
-//					}
-//					else if (m_instance->m_isDown && !m_instance->m_isStateReadyToChange)
-//						m_instance->m_isStateReadyToChange = true;
 					if (m_instance->m_isDown)
+					{
+						m_instance->m_isDown = false;
 						isMouseStateChanged = true;
-
-					m_instance->m_isDown = false;
+					}
 				}
 
-				if (m_instance->m_highestRSpeed < indexFingerSpeed / palmSpeed)
-					m_instance->m_highestRSpeed = indexFingerSpeed / palmSpeed;
+				float xyDistance = std::sqrt((hand.palm.position.x - m_instance->m_pressPosition.x) * (hand.palm.position.x - m_instance->m_pressPosition.x) + (hand.palm.position.y - m_instance->m_pressPosition.y) * (hand.palm.position.y - m_instance->m_pressPosition.y));
 
 				sprintf(m_instance->m_rightLabelBuffer,
-						"Right hand:\nIndexY:\t%.1f\nPalmY:\t%.1f\nRelativeSpeed:\t%.2f\n\nTapCount:\t%d\n",
+						"Right hand:\nIPD:\t%.2f\nRelativeSpeed:\t%.2f\nxyDistance:\t%.2f\n\nTapCount:\t%d (%c/%c)\n",
 
 //						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.x,
-						hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y,
+//						hand.fingers[LeapSensor::FingerType::IndexFinger].tipPosition.y,
 //						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.y,
-						hand.palm.position.y,
+//						hand.palm.position.y,
+						m_instance->m_indexPalmDistance,
 
 //						m_instance->m_highestRSpeed,
 						indexFingerSpeed / palmSpeed,
+						xyDistance,
 //						hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.z,
 
-						m_instance->m_rightTapCount);
+						m_instance->m_rightTapCount,
+						(m_instance->m_isDown)? 'd' : 'n',
+						(m_instance->m_isDragging)? 'd': 'n');
 				flag |= 0x01;
 
 				if (m_instance->m_isLeapControlEnabled)
 				{
 //					SystemController::moveMouseTo((int)((inRange(-100.0f, hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.x, 100.0f) + 100.0f) / 200.0f * SystemController::ScreenWidth), (int)((inRange(-40.0f, hand.fingers[LeapSensor::FingerType::IndexFinger].bones[LeapSensor::BoneType::DistalBone].end.z, 40.0f) + 40.0f) / 80.0f * SystemController::ScreenHeight));
-					SystemController::moveMouseTo((int)((inRange(-100.0f, hand.palm.position.x, 100.0f) + 100.0f) / 200.0f * SystemController::ScreenWidth), (int)((inRange(-40.0f, hand.palm.position.z, 40.0f) + 40.0f) / 80.0f * SystemController::ScreenHeight));
+					if ((!isMouseStateChanged && !m_instance->m_isDown) || m_instance->m_isDragging || xyDistance >= 5.0f)
+					{
+						m_instance->m_isDragging = true;
+						SystemController::moveMouseTo((int)((inRange(-100.0f, hand.palm.position.x, 100.0f) + 100.0f) / 200.0f * SystemController::ScreenWidth), (int)((inRange(-40.0f, hand.palm.position.z, 40.0f) + 40.0f) / 80.0f * SystemController::ScreenHeight));
+					}
+					else
+						SystemController::moveMouseTo((int)((inRange(-100.0f, m_instance->m_pressPosition.x, 100.0f) + 100.0f) / 200.0f * SystemController::ScreenWidth), (int)((inRange(-40.0f, m_instance->m_pressPosition.z, 40.0f) + 40.0f) / 80.0f * SystemController::ScreenHeight));
+
 					if (isMouseStateChanged)
 						if (m_instance->m_isDown)
 							SystemController::pressMouse(SystemController::MouseButton::LeftButton);
@@ -179,10 +185,7 @@ void MainWindow::onFrame(const LeapSensor::Frame &frame)
 			}
 		}
 
-//		if (~flag & 0x02)
-//			strcpy(m_instance->m_leftLabelBuffer, "None\0");
-//		if (~flag & 0x01)
-//			strcpy(m_instance->m_rightLabelBuffer, "None\0");
+		m_instance->m_lastTime = frame.timestamp;
 	}
 	catch (int e)
 	{}

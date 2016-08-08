@@ -222,6 +222,7 @@ public:
 		STATE_SERVICE_CONNECTED	= 1 << 3
 	};
 
+	typedef Leap::Vector Vector;
 	typedef function<void (const Frame &)> OnFrameListener;
 
 	LeapSensor(void) = delete;

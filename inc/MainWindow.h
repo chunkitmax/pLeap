@@ -38,9 +38,13 @@ protected:
 
 	bool								m_isFrameUpdated;
 	bool								m_isLeapControlEnabled;
-	bool								m_isStateReadyToChange;
+
 	bool								m_isDown;
 	float								m_highestRSpeed;
+	bool								m_isDragging;
+	LeapSensor::Vector				m_pressPosition;
+	float								m_indexPalmDistance;
+	int64_t							m_lastTime;
 
 	Gtk::Box							m_box;
 
